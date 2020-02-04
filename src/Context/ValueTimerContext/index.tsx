@@ -9,20 +9,25 @@ interface Props {
 
 interface IHistory {
   id: number;
-  title?: string;
+  title: string;
+  time: number;
+  amount: number;
+  currency: string;
+  hourly_rate: number;
+  start_date: number;
+  end_date: number;
 }
 
 interface IValueTimerContext {
   history: Array<IHistory>;
   getHistory: () => void;
-  insertHistory: (data) => void;
-  // removeTodoList: (index: number) => void;
+  insertHistory: (data: IHistory) => void;
 }
 
 const ValueTimerContext = createContext<IValueTimerContext>({
   history: [],
   getHistory: (): void => {},
-  insertHistory: (data): void => {},
+  insertHistory: (data: IHistory): void => {},
 });
 
 const ValueTimerContextProvider = ({children}: Props) => {
@@ -42,14 +47,13 @@ const ValueTimerContextProvider = ({children}: Props) => {
               : '../../android/app/src/main/assets/www/valuetimerDB.db',
         },
         () => {
-          console.log('db 접속 성공???d!!!!!');
+          console.log('sql db connect success');
         },
         error => {
           console.log('error', error);
         },
       );
 
-      console.log('database:?? ', database);
       await setDB(database);
     };
     connectDB();
@@ -60,7 +64,6 @@ const ValueTimerContextProvider = ({children}: Props) => {
       db.transaction(tx => {
         tx.executeSql('SELECT * FROM history;', [], (tx, results) => {
           const rows = results.rows;
-          console.log('rows: ', rows);
           let data = [];
 
           for (let i = 0; i < rows.length; i++) {
@@ -69,8 +72,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
             });
           }
 
-          console.log('data:context ', data);
-          setHistory(data);
+          setHistory(data.reverse());
         });
       });
   }, [db, count]);
@@ -82,11 +84,12 @@ const ValueTimerContextProvider = ({children}: Props) => {
   const insertHistory = async data => {
     db.transaction(tx => {
       tx.executeSql(
-        'INSERT INTO history (id, title, date, time, hourly_rate, currency, amount) values ( ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO history (id, title, start_date, end_date, time, hourly_rate, currency, amount) values ( ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           null,
           `${data.title}`,
-          `${data.date}`,
+          `${data.start_date}`,
+          `${data.end_date}`,
           `${data.time}`,
           `${data.hourly_rate}`,
           `${data.currency}`,

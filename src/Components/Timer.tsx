@@ -12,10 +12,11 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import styled from 'styled-components/native';
 import {ValueTimerContext} from '~/Context/ValueTimerContext';
+import {getRemaining, numberWithCommas} from '~/util/index';
 
 const TimerText = styled.Text`
   font-size: 50px;
-  color: brown;
+  color: darkcyan;
   /* margin-bottom: 10px; */
   /* margin-top: 10px; */
   margin: auto;
@@ -35,47 +36,8 @@ const Container = styled.View`
   flex: 1;
   align-items: center;
   justify-content: center;
-  border: 5px solid green;
   position: relative;
 `;
-
-const formatNumber = (number: number) => `0${number}`.slice(-2);
-
-const getRemaining = (time: number) => {
-  console.log('time: ', time);
-  const hours = Math.floor(time / 3600);
-  console.log('hours: ', hours);
-  const leftTime = time - 3600 * hours;
-  console.log('leftTime: ', leftTime);
-
-  const mins = Math.floor(leftTime / 60);
-  // const mins = Math.floor(time / 60);
-  const secs = leftTime - mins * 60;
-  console.log('secs: ', secs);
-  // const secs = time - mins * 60;
-  return {
-    hours: formatNumber(hours),
-    mins: formatNumber(mins),
-    secs: formatNumber(secs),
-  };
-};
-
-function numberWithCommas(number: string | number) {
-  const commaAddedNumber = number.toString().split('.');
-  commaAddedNumber[0] = commaAddedNumber[0].replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ',',
-  );
-  return commaAddedNumber.join('.');
-}
-
-const changeTimeToMoney = (time: number) => {
-  const 시급 = 8500;
-  const 초당시급 = Number((시급 / 3600).toFixed(4));
-  // const 초당시급 = Math.floor(시급 / 3600);
-  // return (초당시급 * time).toFixed(1);
-  return Math.floor(초당시급 * time);
-};
 
 export default function Timer() {
   const [remainingSecs, setRemainingSecs] = useState(0);
@@ -85,7 +47,6 @@ export default function Timer() {
   const {insertHistory} = useContext(ValueTimerContext);
 
   const {hours, mins, secs} = getRemaining(remainingSecs);
-  const money = numberWithCommas(changeTimeToMoney(remainingSecs));
 
   const initHourlyRate = async () => {
     const currentHourlyRate = await AsyncStorage.getItem('hourlyRate');
@@ -182,6 +143,11 @@ export default function Timer() {
   //   AsyncStorage.setItem('pauseDate', '');
   // };
 
+  const changeTimeToMoney = (time: number) => {
+    const wagePerSecond = Number((hourlyRate / 3600).toFixed(4));
+    return Math.floor(wagePerSecond * time);
+  };
+
   const toggle = () => {
     if (remainingSecs === 0 && isActive === false) {
       setStartTime();
@@ -198,7 +164,9 @@ export default function Timer() {
     AsyncStorage.setItem('isActive', JSON.stringify(!isActive));
   };
 
-  const reset = () => {
+  const reset = async () => {
+    const start_date = await AsyncStorage.getItem('startTime');
+
     setRemainingSecs(0);
     AsyncStorage.setItem('time', '0');
     AsyncStorage.setItem('startTime', '0');
@@ -208,22 +176,12 @@ export default function Timer() {
     // AsyncStorage.setItem('pauseDate', '');
 
     if (remainingSecs > 0) {
-      const example = {
-        amount: 9000,
-        currency: '$',
-        date: '2019년 언제',
-        hourly_rate: 4000,
-        id: 1,
-        time: 20,
-        title: 'aaa',
-      };
-
-      // 시작일부터 종료일 추가하기
       const realData = {
         amount: changeTimeToMoney(remainingSecs),
         currency: '원',
-        date: `${Date.now()}`,
-        hourly_rate: 4000, // TODO 변수화 해야 하
+        start_date,
+        end_date: `${Date.now()}`,
+        hourly_rate: hourlyRate,
         time: remainingSecs,
         title: '',
       };
@@ -259,6 +217,8 @@ export default function Timer() {
 
     if (Number(value) > 0) setHourlyRate(Number(value));
   };
+
+  const money = numberWithCommas(changeTimeToMoney(remainingSecs));
 
   return (
     <Container>
