@@ -5,24 +5,11 @@ import {ValueTimerContext} from '~/Context/ValueTimerContext';
 
 import {getRemaining, numberWithCommas} from '~/util/index';
 
-const Container = styled.View`
-  /* flex: 1; */
-  align-items: center;
-  justify-content: center;
-  /* align-items: flex-end; */
-`;
-
-const List = styled.Text`
-  color: darkcyan;
-`;
-
 const History: React.FC = () => {
-  const {history, getHistory} = useContext(ValueTimerContext);
-  console.log('history: ', history);
+  const {history} = useContext(ValueTimerContext);
 
   return (
-    <View style={{flex: 1}}>
-      {/* 총 벌어들인 수입 : , 재정 상황 적자 */}
+    <Container>
       {history.length === 0 && (
         <View
           style={{
@@ -39,8 +26,24 @@ const History: React.FC = () => {
         style={{marginTop: 200}}
         data={history}
         renderItem={({item}) => {
-          console.log('item: ', item);
           const {hours, mins, secs} = getRemaining(item.time);
+
+          const DisplayTime = () => {
+            let displaySecond: string = secs;
+            if (secs[0] === '0') {
+              displaySecond = secs.slice(1);
+            }
+
+            if (hours !== '00') {
+              return `${hours}시간 ${mins}분 ${displaySecond}초`;
+            } else if (hours === '00' && mins !== '00') {
+              return `${mins}분 ${displaySecond}초`;
+            } else {
+              return `${displaySecond}초`;
+            }
+          };
+
+          let amountType: string = item.amount >= 0 ? 'positive' : 'negative';
 
           return (
             <View
@@ -53,32 +56,49 @@ const History: React.FC = () => {
                 justifyContent: 'space-between',
               }}>
               <View>
-                <List>{new Date(item.start_date).toLocaleString('ko-KR')}</List>
-                <List>{new Date(item.end_date).toLocaleString('ko-KR')}</List>
+                <List amountType={amountType}>
+                  {new Date(item.start_date).toLocaleString('ko-KR')}
+                </List>
+                <List amountType={amountType}>
+                  {new Date(item.end_date).toLocaleString('ko-KR')}
+                </List>
               </View>
               <View>
-                <List>
-                  {hours !== '00' && `${hours}:`}
-                  {mins}:{secs}
-                </List>
+                <List amountType={amountType}>{DisplayTime()}</List>
                 <View>
-                  <Text>
+                  <List amountType={amountType}>
                     시간당 {numberWithCommas(item.hourly_rate)}
                     {item.currency}
-                  </Text>
+                  </List>
                 </View>
               </View>
 
-              <Text>
-                {item.amount}
+              <List amountType={amountType}>
+                {numberWithCommas(item.amount)}
                 {item.currency}
-              </Text>
+              </List>
             </View>
           );
         }}
       />
-    </View>
+    </Container>
   );
 };
+
+const Container = styled.View`
+  flex: 1;
+`;
+
+interface IAmountType {
+  readonly amountType?: string;
+}
+
+const List = styled.Text<IAmountType>`
+  color: ${props => {
+    if (props.amountType === 'positive') return '#0ca678';
+    else if (props.amountType === 'negative') return '#f03e3e';
+    else return '#000';
+  }};
+`;
 
 export default History;
