@@ -264,7 +264,7 @@ export default function Timer() {
                 style={styles.button}
                 status="success"
                 onPress={() => setActType(!actType)}>
-                생산
+                창조
               </Button>
             )}
             {!actType && (
