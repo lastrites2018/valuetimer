@@ -152,8 +152,8 @@ export default function Timer() {
           ? changeTimeToMoney(remainingSecs)
           : -changeTimeToMoney(remainingSecs),
         currency: '원',
-        start_date,
-        end_date: `${Number(start_date) + Number(remainingSecs * 1000)}`,
+        start_date: Number(start_date),
+        end_date: Number(start_date) + remainingSecs * 1000,
         // end_date: `${Date.now()}`,
         hourly_rate: hourlyRate,
         time: remainingSecs,
