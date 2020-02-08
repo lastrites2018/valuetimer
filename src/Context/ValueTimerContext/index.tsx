@@ -3,6 +3,7 @@ import {Platform} from 'react-native';
 
 import SQLite from 'react-native-sqlite-storage';
 import AsyncStorage from '@react-native-community/async-storage';
+import SplashScreen from 'react-native-splash-screen';
 
 interface Props {
   children: JSX.Element | Array<JSX.Element>;
@@ -92,6 +93,10 @@ const ValueTimerContextProvider = ({children}: Props) => {
       await setDB(database);
     };
     connectDB();
+  }, []);
+
+  useEffect(() => {
+    SplashScreen.hide();
   }, []);
 
   useEffect(() => {
