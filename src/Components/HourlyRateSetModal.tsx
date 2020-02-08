@@ -9,6 +9,7 @@ type HourlyRateSetModalProps = {
 };
 
 const HourlyRateSetModal = ({
+  hourlyRateModalVisible,
   setHourlyRateModalVisible,
 }: HourlyRateSetModalProps) => {
   const [visible, setVisible] = useState(false);
@@ -16,14 +17,14 @@ const HourlyRateSetModal = ({
 
   useEffect(() => {
     let timerId: ReturnType<typeof setTimeout>;
-    if (!visible) {
+    if (hourlyRateModalVisible && !visible) {
       timerId = setTimeout(() => {
         setVisible(true);
       }, 100);
     }
 
     return () => clearTimeout(timerId);
-  }, []);
+  }, [hourlyRateModalVisible]);
 
   const closeModal = async () => {
     await setVisible(false);

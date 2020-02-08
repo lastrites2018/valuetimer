@@ -9,30 +9,18 @@ import format from 'date-fns/format';
 import koLocale from 'date-fns/locale/ko';
 
 const History: React.FC = () => {
-  const {history} = useContext(ValueTimerContext);
+  const {history, getTodayAmount} = useContext(ValueTimerContext);
 
-  const sumAmount = () => {
+  const sumTotalAmount = () => {
     return history.reduce((acc, cur) => acc + cur.amount, 0);
-  };
-
-  const todaySumAmount = () => {
-    const today = new Date();
-    const day = today.getDate();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-    const todayWithoutTime = new Date(`${year}/${month}/${day}`).getTime();
-
-    return history
-      .filter(item => item.end_date >= todayWithoutTime)
-      .reduce((acc, cur) => acc + cur.amount, 0);
   };
 
   return (
     <Container>
       <Header>하루를 흑자로 만들어보세요.</Header>
       {/* <Header>Timeline</Header> */}
-      <Header>오늘은 {todaySumAmount()}원 획득했습니다.</Header>
-      <Header>지금까지 {sumAmount()}원 획득했습니다.</Header>
+      <Header>오늘은 {getTodayAmount()}원 획득했습니다.</Header>
+      <Header>지금까지 {sumTotalAmount()}원 획득했습니다.</Header>
 
       {history.length === 0 && (
         <NoData>

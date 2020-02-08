@@ -30,6 +30,7 @@ interface IValueTimerContext {
   handleHourlyRate: (value: string) => void;
   isActive: boolean;
   setIsActive: (value: boolean) => void;
+  getTodayAmount: () => number;
 }
 
 const ValueTimerContext = createContext<IValueTimerContext>({
@@ -43,6 +44,7 @@ const ValueTimerContext = createContext<IValueTimerContext>({
   handleHourlyRate: (value: string) => {},
   isActive: false,
   setIsActive: () => {},
+  getTodayAmount: (): number => 0,
 });
 
 const ValueTimerContextProvider = ({children}: Props) => {
@@ -151,6 +153,18 @@ const ValueTimerContextProvider = ({children}: Props) => {
     // if (!numberValue) setHourlyRate(0);
   };
 
+  const getTodayAmount = () => {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const todayWithoutTime = new Date(`${year}/${month}/${day}`).getTime();
+
+    return history
+      .filter(item => item.end_date >= todayWithoutTime)
+      .reduce((acc, cur) => acc + cur.amount, 0);
+  };
+
   return (
     <ValueTimerContext.Provider
       value={{
@@ -164,6 +178,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
         handleHourlyRate,
         isActive,
         setIsActive,
+        getTodayAmount,
       }}>
       {children}
     </ValueTimerContext.Provider>

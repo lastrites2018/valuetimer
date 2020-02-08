@@ -1,13 +1,12 @@
 import React, {useState, useEffect, useContext} from 'react';
 import {
-  View,
-  Text,
+  // View,
+  // Text,
   TouchableOpacity,
   AppState,
-  StyleSheet,
-  ScrollView,
+  // ScrollView,
 } from 'react-native';
-import {Input, Button} from '@ui-kitten/components';
+import {Button} from '@ui-kitten/components';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -24,6 +23,7 @@ export default function Timer() {
     setRemainingSecs,
     isActive,
     setIsActive,
+    getTodayAmount,
   } = useContext(ValueTimerContext);
 
   const [actType, setActType] = useState(true);
@@ -181,41 +181,6 @@ export default function Timer() {
     return () => clearTimeout(timerId);
   }, [isActive, remainingSecs]);
 
-  // useEffect(() => {
-  //   let intervalId: number = 0;
-  //   let timerId = null;
-
-  //   if (isActive) {
-  //     if (Platform.OS === 'ios') {
-  //       BackgroundTimer.start();
-  //     }
-
-  //     intervalId = BackgroundTimer.setInterval(() => {
-  //       setRemainingSecs(remainingSecs => remainingSecs + 1);
-  //       AsyncStorage.setItem('time', JSON.stringify(remainingSecs + 1));
-  //     }, 1000);
-  //   } else if (!isActive && remainingSecs !== 0) {
-  //     BackgroundTimer.clearInterval(intervalId);
-  //   }
-  //   return () => BackgroundTimer.clearInterval(intervalId);
-  //   // return () => BackgroundTimer.stopBackgroundTimer();
-  // }, [isActive, remainingSecs]);
-
-  // const handleHourlyRate = (value: string) => {
-  //   if (remainingSecs > 0) {
-  //     return alert('타이머가 작동중엔 변경할 수 없습니다.');
-  //   }
-  //   const numberValue: number = Number(value);
-
-  //   if (numberValue >= 0) {
-  //     setHourlyRate(numberValue);
-  //     AsyncStorage.setItem('hourlyRate', JSON.stringify(numberValue));
-  //   }
-  //   // if (!numberValue) {
-  //   // setHourlyRate(0);
-  //   // }
-  // };
-
   const money = numberWithCommas(changeTimeToMoney(remainingSecs));
 
   const textPress = () => {
@@ -228,89 +193,66 @@ export default function Timer() {
 
   return (
     <Container>
-      <ScrollView>
-        <TopDisplayMessage>
-          {/* <Text
-          style={{
-            textAlign: 'center',
-            fontSize: 25,
-            // position: 'absolute',
-          }}>
-          오늘 1000원을 벌었습니다.
-        </Text> */}
+      <TopDisplayMessage>
+        <HeaderText onPress={textPress}>
+          당신의 시간의 가치는 <HourlyRateText>{hourlyRate}</HourlyRateText>원
+          입니다.
+        </HeaderText>
+        <TodayTotalAmountText>
+          오늘은 {getTodayAmount()}원을 획득했습니다.
+        </TodayTotalAmountText>
+      </TopDisplayMessage>
 
-          <Text
-            style={{
-              textAlign: 'center',
-              fontSize: 20,
-            }}
-            onPress={textPress}>
-            당신의 시간의 가치는 <HourlyRateText>{hourlyRate}</HourlyRateText>{' '}
-            원 입니다.
-          </Text>
-        </TopDisplayMessage>
+      {!isActive && (
+        <HourlyRateSetModal
+          hourlyRateModalVisible={hourlyRateModalVisible}
+          setHourlyRateModalVisible={setHourlyRateModalVisible}
+        />
+      )}
 
-        {!isActive && hourlyRateModalVisible && (
-          <HourlyRateSetModal
-            hourlyRateModalVisible={hourlyRateModalVisible}
-            setHourlyRateModalVisible={setHourlyRateModalVisible}
-          />
+      <MainTimer>
+        <AmountType>
+          {actType && (
+            <Button status="success" onPress={() => setActType(!actType)}>
+              창조
+            </Button>
+          )}
+          {!actType && (
+            <Button status="danger" onPress={() => setActType(!actType)}>
+              소비
+            </Button>
+          )}
+        </AmountType>
+
+        <TimerText>
+          {actType ? '' : '-'}
+          {money} 원
+        </TimerText>
+        <TimerText>{`${hours} : ${mins} : ${secs}`}</TimerText>
+      </MainTimer>
+
+      <StartButtonContainer>
+        {!isActive && (
+          <TouchableOpacity>
+            <Button onPress={toggle}>시작하기</Button>
+          </TouchableOpacity>
         )}
-
-        <MainTimer>
-          <AmountType>
-            {actType && (
-              <Button
-                style={styles.button}
-                status="success"
-                onPress={() => setActType(!actType)}>
-                창조
-              </Button>
-            )}
-            {!actType && (
-              <Button
-                style={styles.button}
-                status="danger"
-                onPress={() => setActType(!actType)}>
-                소비
-              </Button>
-            )}
-          </AmountType>
-          <TimerText>
-            {actType ? '' : '-'}
-            {money} 원
-          </TimerText>
-          <TimerText>{`${hours} : ${mins} : ${secs}`}</TimerText>
-        </MainTimer>
-        <View style={styles.buttonContainer}>
-          {!isActive && (
-            <TouchableOpacity>
-              <Button style={styles.startButton} onPress={toggle}>
-                시작하기
-              </Button>
-            </TouchableOpacity>
-          )}
-          {isActive && (
-            <TouchableOpacity>
-              <Button
-                style={styles.startButton}
-                onPress={reset}
-                appearance="outline">
-                종료하기
-              </Button>
-            </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
+        {isActive && (
+          <TouchableOpacity>
+            <Button onPress={reset} appearance="outline">
+              종료하기
+            </Button>
+          </TouchableOpacity>
+        )}
+      </StartButtonContainer>
     </Container>
   );
 }
 
 const Container = styled.SafeAreaView`
   flex: 1;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  position: relative;
 `;
 
 const TimerText = styled.Text`
@@ -322,6 +264,16 @@ const TimerText = styled.Text`
   padding-right: 5px;
 `;
 
+const HeaderText = styled.Text`
+  text-align: center;
+  font-size: 20px;
+`;
+
+const TodayTotalAmountText = styled.Text`
+  text-align: center;
+  font-size: 15px;
+`;
+
 const HourlyRateText = styled.Text`
   bottom: 0px;
   left: 0px;
@@ -331,35 +283,22 @@ const HourlyRateText = styled.Text`
 `;
 
 const TopDisplayMessage = styled.View`
-  flex: 1;
-  height: 50px;
-  margin-top: 100px;
+  flex: 0.5;
+  margin-top: 80px;
 `;
 
 const AmountType = styled.View`
-  /* flex: 2; */
-  height: 6px;
-  margin-bottom: 50px;
-  /* margin-top: 100; */
+  align-items: center;
+  justify-content: center;
 `;
 
 const MainTimer = styled.View`
-  flex: 2;
+  flex: 1.5;
 `;
 
-const styles = StyleSheet.create({
-  button: {
-    marginLeft: 100,
-    marginRight: 100,
-  },
-  startButton: {
-    marginTop: 50,
-  },
-  buttonContainer: {
-    flex: 2,
-    flexDirection: 'row',
-    alignContent: 'center',
-    justifyContent: 'center',
-    borderStyle: 'solid',
-  },
-});
+const StartButtonContainer = styled.View`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+`;
