@@ -39,7 +39,7 @@ const HourlyRateSetModal = ({
         status="success"
         onChangeText={handleHourlyRate}
         keyboardType={'numeric'}
-        autoFocus
+        autoFocus={visible}
         // onEndEditing={() => setShowRateInput(false)}
         style={{marginLeft: 35, marginRight: 35}}
       />
