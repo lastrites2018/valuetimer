@@ -84,19 +84,16 @@ const ValueTimerContextProvider = ({children}: Props) => {
         },
         () => {
           console.log('sql db connect success');
+          SplashScreen.hide();
+          setDB(database);
         },
         error => {
           console.log('error', error);
+          SplashScreen.hide();
         },
       );
-
-      await setDB(database);
     };
     connectDB();
-  }, []);
-
-  useEffect(() => {
-    SplashScreen.hide();
   }, []);
 
   useEffect(() => {
