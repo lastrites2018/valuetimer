@@ -138,15 +138,7 @@ export default function Timer() {
   const reset = async () => {
     const start_date = await AsyncStorage.getItem('startTime');
 
-    await setRemainingSecs(0);
-    await AsyncStorage.setItem('time', '0');
-    await AsyncStorage.setItem('startTime', '0');
-    await AsyncStorage.setItem('isActive', 'false');
-    // ! 정지 기능 제거함
-    // AsyncStorage.setItem('totalPausedMillisecond', '');
-    // AsyncStorage.setItem('pauseDate', '');
-
-    if (start_date && remainingSecs > 0) {
+    if (start_date && start_date !== '0' && remainingSecs > 0) {
       const log = {
         amount: actType
           ? changeTimeToMoney(remainingSecs)
@@ -163,6 +155,14 @@ export default function Timer() {
       insertHistory(log);
     }
 
+    await setRemainingSecs(0);
+    await AsyncStorage.setItem('time', '0');
+    await AsyncStorage.setItem('startTime', '0');
+    await AsyncStorage.setItem('isActive', 'false');
+    // ! 정지 기능 제거함
+    // AsyncStorage.setItem('totalPausedMillisecond', '');
+    // AsyncStorage.setItem('pauseDate', '');
+
     await setIsActive(false);
   };
 
@@ -172,7 +172,6 @@ export default function Timer() {
     if (isActive) {
       timerId = setTimeout(() => {
         setRemainingSecs(remainingSecs + 1);
-        // setRemainingSecs(remainingSecs => remainingSecs + 1);
         AsyncStorage.setItem('time', JSON.stringify(remainingSecs + 1));
       }, 1000);
     } else if (!isActive && remainingSecs !== 0) {
