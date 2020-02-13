@@ -29,6 +29,11 @@ build/
 local.properties
 *.iml
 
+#android release key
+gradle.properties
+my-release-key.keystore
+my-release-key.keystore.old
+
 # node.js
 #
 node_modules/
