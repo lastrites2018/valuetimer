@@ -1,0 +1,143 @@
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/fastlane/docs
+# All available actions: https://docs.fastlane.tools/actions
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "2.28.3"
+
+default_platform :android
+
+platform :android do
+  before_all do
+    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    gradle(task: "test")
+  end
+
+
+  # help from : dev-yakuza 
+
+  def increment_version_code()
+    path = '../app/build.gradle'
+    re = /versionCode\s+(\d+)/
+  
+    s = File.read(path)
+    versionCode = s[re, 1].to_i
+    s[re, 1] = (versionCode + 1).to_s
+  
+    f = File.new(path, 'w')
+    f.write(s)
+    f.close
+  end
+  
+  def increment_version_number(bump_type: nil, version_number: nil)
+    path = '../app/build.gradle'
+    re = /versionName\s+("\d+.\d+.\d+")/
+    s = File.read(path)
+    versionName = s[re, 1].gsub!('"','').split('.')
+  
+    major = versionName[0].to_i
+    minor = versionName[1].to_i
+    patch = versionName[2].to_i
+  
+    if (bump_type == 'major')
+        major += 1
+        minor = 0
+        patch = 0
+    elsif (bump_type == 'minor')
+        minor += 1
+        patch = 0
+    elsif (bump_type == 'patch')
+        patch += 1
+    end
+  
+    if(version_number)
+      s[re, 1] = "\"#{version_number}\""
+    else
+      s[re, 1] = "\"#{major}.#{minor}.#{patch}\""
+    end
+  
+    f = File.new(path, 'w')
+    f.write(s)
+    f.close
+    increment_version_code()
+  end
+
+  def updateVersion(options)
+    if options[:version]
+      version = options[:version]
+    else
+      version = prompt(text: "Enter the version type or specific version\n(major, minor, patch or 1.0.0): ")
+    end
+  
+    re = /\d+.\d+.\d+/
+    versionNum = version[re, 0]
+  
+    if (versionNum)
+      increment_version_number(
+        version_number: versionNum
+      )
+    elsif (version == 'major' || version == 'minor' || version == 'patch')
+      increment_version_number(
+        bump_type: version
+      )
+    else
+      UI.user_error!("[ERROR] Wrong version!!!!!!")
+    end
+  end
+  ## add end
+
+  desc "Submit a new Beta Build to Crashlytics Beta"
+  lane :beta do |options|
+    # updateVersion(options)
+
+    gradle(task: "assembleRelease")
+    # crashlytics
+
+    # sh "your_script.sh"
+    # You can also use other beta testing services here
+  end
+
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do |options|
+    updateVersion(options)
+
+    gradle(task: "assembleRelease")
+    supply
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Platforms.md
+# All available actions: https://docs.fastlane.tools/actions
+
+# fastlane reports which actions are used
+# No personal data is sent or shared. Learn more at https://github.com/fastlane/enhancer

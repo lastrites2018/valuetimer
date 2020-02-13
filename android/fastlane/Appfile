@@ -1,0 +1,2 @@
+json_key_file "./gradle/api-5195142487110121652-942891-09bf07ea17b5.json" # Path to the json secret file - Follow https://github.com/fastlane/supply#setup to get one
+package_name "com.valuetimer" # e.g. com.krausefx.app
