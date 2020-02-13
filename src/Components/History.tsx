@@ -15,6 +15,27 @@ const History: React.FC = () => {
     return history.reduce((acc, cur) => acc + cur.amount, 0);
   };
 
+  const getDayHeader = (item: IHistory, index: number) => {
+    const currentData = getDateObj(item.start_date);
+    const beforeData = index > 0 && getDateObj(history[index - 1].start_date);
+
+    if (
+      index === 0 ||
+      (beforeData &&
+        (currentData.day !== beforeData.day ||
+          currentData.month !== beforeData.month ||
+          currentData.year !== beforeData.year))
+    ) {
+      const currentDataTime = new Date(
+        `${currentData.year}/${currentData.month}/${currentData.day}`,
+      ).getTime();
+
+      return getDateOnly(currentDataTime);
+    }
+
+    return;
+  };
+
   return (
     <Container>
       <Header>하루를 흑자로 만들어보세요.</Header>
@@ -32,30 +53,41 @@ const History: React.FC = () => {
         keyExtractor={item => {
           return `historyList-${item.id}`;
         }}
-        renderItem={({item}) => {
+        renderItem={({item, index}) => {
+          const DayHeader = getDayHeader(item, index);
+
           const {hours, mins, secs} = getRemaining(item.time);
 
           let amountType: string = item.amount >= 0 ? 'positive' : 'negative';
           const timeDisplay = displayTime(hours, mins, secs);
 
           return (
-            <View style={styles.listView}>
-              <View>
-                <Text>{dateOnly(item.start_date)}</Text>
-                <Text>{dateOnly(item.end_date)}</Text>
-              </View>
-              <View>
-                <Text>{timeDisplay}</Text>
+            <View>
+              {DayHeader && (
+                <Text
+                  style={{marginLeft: 20, marginTop: 10, fontWeight: '800'}}>
+                  {DayHeader}
+                </Text>
+              )}
+              <View style={styles.listView}>
+                <View>
+                  <Text style={{minWidth: 90}}>
+                    {getTimeOnly(item.start_date)}-{getTimeOnly(item.end_date)}
+                  </Text>
+                </View>
+                <View>
+                  <Text>{timeDisplay}</Text>
+                  <List amountType={amountType}>
+                    시간당 {numberWithCommas(item.hourly_rate)}
+                    {item.currency}
+                  </List>
+                </View>
+
                 <List amountType={amountType}>
-                  시간당 {numberWithCommas(item.hourly_rate)}
+                  {numberWithCommas(item.amount)}
                   {item.currency}
                 </List>
               </View>
-
-              <List amountType={amountType}>
-                {numberWithCommas(item.amount)}
-                {item.currency}
-              </List>
             </View>
           );
         }}
@@ -86,9 +118,26 @@ const NoData = styled.View`
   flex-direction: row;
 `;
 
-const dateOnly = (date: number): string => {
+const getTimeOnly = (date: number): string => {
   if (!date) return '';
-  return format(new Date(date), 'yyyy-MM-dd HH:mm:ss', {locale: koLocale});
+  return format(new Date(date), 'HH:mm', {locale: koLocale});
+};
+
+const getDateOnly = (date: number): string => {
+  if (!date) return '';
+  return format(new Date(date), 'yyyy-MM-dd', {locale: koLocale});
+};
+
+const getDateObj = (date: number) => {
+  const day = new Date(date).getDate();
+  const month = new Date(date).getMonth() + 1;
+  const year = new Date(date).getFullYear();
+
+  return {
+    day,
+    month,
+    year,
+  };
 };
 
 const displayTime = (hours: string, mins: string, secs: string) => {
