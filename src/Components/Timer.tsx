@@ -24,6 +24,7 @@ export default function Timer() {
     isActive,
     setIsActive,
     getTodayAmount,
+    isShowGuide,
   } = useContext(ValueTimerContext);
 
   const [actType, setActType] = useState(true);
@@ -193,6 +194,9 @@ export default function Timer() {
   return (
     <Container>
       <TopDisplayMessage>
+        {isShowGuide && (
+          <GuideText>👇를 눌러서 값을 변경할 수 있습니다.</GuideText>
+        )}
         <HeaderText onPress={textPress}>
           당신의 시간의 가치는 <HourlyRateText>{hourlyRate}</HourlyRateText>원
           입니다.
@@ -266,6 +270,11 @@ const TimerText = styled.Text`
 const HeaderText = styled.Text`
   text-align: center;
   font-size: 20px;
+`;
+const GuideText = styled.Text`
+  text-align: center;
+  font-size: 18px;
+  color: orangered;
 `;
 
 const TodayTotalAmountText = styled.Text`

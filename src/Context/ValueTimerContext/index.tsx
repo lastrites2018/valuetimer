@@ -21,6 +21,7 @@ interface IValueTimerContext {
   isActive: boolean;
   setIsActive: (value: boolean) => void;
   getTodayAmount: () => number;
+  isShowGuide: boolean;
 }
 
 const ValueTimerContext = createContext<IValueTimerContext>({
@@ -35,6 +36,7 @@ const ValueTimerContext = createContext<IValueTimerContext>({
   isActive: false,
   setIsActive: () => {},
   getTodayAmount: (): number => 0,
+  isShowGuide: false,
 });
 
 const ValueTimerContextProvider = ({children}: Props) => {
@@ -44,6 +46,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
   const [count, setCount] = useState(0);
   const [remainingSecs, setRemainingSecs] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const [isShowGuide, setIsShowGuide] = useState(false);
 
   async function initHourlyRate() {
     const currentHourlyRate = await AsyncStorage.getItem('hourlyRate');
@@ -55,8 +58,27 @@ const ValueTimerContextProvider = ({children}: Props) => {
     }
   }
 
+  async function checkGuide() {
+    const appLaunchCount = await AsyncStorage.getItem('appLaunchCount');
+    const isUserHaveChangeHourlyRateExperience = await AsyncStorage.getItem(
+      'isUserHaveChangeHourlyRateExperience',
+    );
+
+    const count = appLaunchCount ? parseInt(appLaunchCount) : 0;
+
+    if (count < 3 && !isUserHaveChangeHourlyRateExperience) {
+      setIsShowGuide(true);
+    }
+
+    await AsyncStorage.setItem('appLaunchCount', `${count + 1}`);
+  }
+
   useEffect(() => {
     initHourlyRate();
+  }, []);
+
+  useEffect(() => {
+    checkGuide();
   }, []);
 
   useEffect(() => {
@@ -139,6 +161,8 @@ const ValueTimerContextProvider = ({children}: Props) => {
     if (numberValue >= 0) {
       setHourlyRate(numberValue);
       AsyncStorage.setItem('hourlyRate', JSON.stringify(numberValue));
+      AsyncStorage.setItem('isUserHaveChangeHourlyRateExperience', `true`);
+      isShowGuide && setIsShowGuide(false);
     }
 
     // if (!numberValue) setHourlyRate(0);
@@ -170,6 +194,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
         isActive,
         setIsActive,
         getTodayAmount,
+        isShowGuide,
       }}>
       {children}
     </ValueTimerContext.Provider>

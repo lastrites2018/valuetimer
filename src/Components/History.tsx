@@ -63,17 +63,12 @@ const History: React.FC = () => {
 
           return (
             <View>
-              {DayHeader && (
-                <Text
-                  style={{marginLeft: 20, marginTop: 10, fontWeight: '800'}}>
-                  {DayHeader}
-                </Text>
-              )}
+              {DayHeader && <DayHeaderText>{DayHeader}</DayHeaderText>}
               <View style={styles.listView}>
                 <View>
-                  <Text style={{minWidth: 90}}>
+                  <TimeText>
                     {getTimeOnly(item.start_date)}-{getTimeOnly(item.end_date)}
-                  </Text>
+                  </TimeText>
                 </View>
                 <View>
                   <Text>{timeDisplay}</Text>
@@ -118,6 +113,13 @@ const NoData = styled.View`
   flex-direction: row;
 `;
 
+const DayHeaderText = styled.Text`
+  margin-left: 20px;
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: bold;
+`;
+
 const getTimeOnly = (date: number): string => {
   if (!date) return '';
   return format(new Date(date), 'HH:mm', {locale: koLocale});
@@ -139,6 +141,10 @@ const getDateObj = (date: number) => {
     year,
   };
 };
+
+const TimeText = styled.Text`
+  min-width: 90px;
+`;
 
 const displayTime = (hours: string, mins: string, secs: string) => {
   let displaySecond: string = secs;
