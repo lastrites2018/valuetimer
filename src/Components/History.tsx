@@ -70,13 +70,13 @@ const History: React.FC = () => {
                     {getTimeOnly(item.start_date)}-{getTimeOnly(item.end_date)}
                   </TimeText>
                 </View>
-                <View>
+                <CenterContainer>
                   <Text>{timeDisplay}</Text>
                   <List amountType={amountType}>
                     시간당 {numberWithCommas(item.hourly_rate)}
                     {item.currency}
                   </List>
-                </View>
+                </CenterContainer>
 
                 <List amountType={amountType}>
                   {numberWithCommas(item.amount)}
@@ -164,6 +164,11 @@ const displayTime = (hours: string, mins: string, secs: string) => {
 interface IAmountType {
   readonly amountType?: string;
 }
+
+const CenterContainer = styled.View`
+  min-width: 80px;
+  text-align: right;
+`;
 
 const List = styled.Text<IAmountType>`
   color: ${props => {

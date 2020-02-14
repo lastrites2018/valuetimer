@@ -1,11 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
-import {
-  // View,
-  // Text,
-  TouchableOpacity,
-  AppState,
-  // ScrollView,
-} from 'react-native';
+import {TouchableOpacity, AppState, Alert} from 'react-native';
 import {Button} from '@ui-kitten/components';
 
 import AsyncStorage from '@react-native-community/async-storage';
@@ -14,6 +8,10 @@ import styled from 'styled-components/native';
 import {ValueTimerContext} from '~/Context/ValueTimerContext';
 import {getRemaining, numberWithCommas} from '~/util/index';
 import HourlyRateSetModal from '~/Components/HourlyRateSetModal';
+
+interface IMoneyText {
+  actType: boolean;
+}
 
 export default function Timer() {
   const {
@@ -185,7 +183,7 @@ export default function Timer() {
 
   const textPress = () => {
     if (isActive || remainingSecs > 0) {
-      return alert('타이머를 종료시킨 후에, 시간의 가치를 변경해주세요.');
+      return Alert.alert('타이머를 종료시킨 후에, 시간의 가치를 변경해주세요.');
     }
 
     setHourlyRateModalVisible(true);
@@ -198,11 +196,12 @@ export default function Timer() {
           <GuideText>👇를 눌러서 값을 변경할 수 있습니다.</GuideText>
         )}
         <HeaderText onPress={textPress}>
-          당신의 시간의 가치는 <HourlyRateText>{hourlyRate}</HourlyRateText>원
+          당신의 시간의 가치는{' '}
+          <HourlyRateText>{numberWithCommas(hourlyRate)}</HourlyRateText>원
           입니다.
         </HeaderText>
         <TodayTotalAmountText>
-          오늘은 {getTodayAmount()}원을 획득했습니다.
+          오늘은 {numberWithCommas(getTodayAmount())}원을 획득했습니다.
         </TodayTotalAmountText>
       </TopDisplayMessage>
 
@@ -227,11 +226,18 @@ export default function Timer() {
           )}
         </AmountType>
 
-        <TimerText>
+        <MoneyText actType={actType}>
           {actType ? '' : '-'}
           {money} 원
-        </TimerText>
-        <TimerText>{`${hours} : ${mins} : ${secs}`}</TimerText>
+        </MoneyText>
+
+        <TimerContainer>
+          <TimerText>{hours}</TimerText>
+          <ColonText>:</ColonText>
+          <TimerText>{mins}</TimerText>
+          <ColonText>:</ColonText>
+          <TimerText>{secs}</TimerText>
+        </TimerContainer>
       </MainTimer>
 
       <StartButtonContainer>
@@ -258,13 +264,23 @@ const Container = styled.SafeAreaView`
   justify-content: center;
 `;
 
-const TimerText = styled.Text`
+const ColonText = styled.Text`
+  min-width: 50px;
   font-size: 50px;
-  color: #0ca678;
+  text-align: center;
+`;
+
+const TimerText = styled.Text`
+  min-width: 60px;
+  font-size: 50px;
+`;
+
+const MoneyText = styled.Text<IMoneyText>`
+  font-size: 50px;
+  color: ${props => (props.actType ? '#0ca678' : '#f03e3e')};
   margin: auto;
   text-align: right;
-  padding-left: 5px;
-  padding-right: 5px;
+  min-width: 100px;
 `;
 
 const HeaderText = styled.Text`
@@ -309,4 +325,9 @@ const StartButtonContainer = styled.View`
   flex-direction: row;
   align-items: center;
   justify-content: center;
+`;
+
+const TimerContainer = styled.View`
+  justify-content: center;
+  flex-direction: row;
 `;
