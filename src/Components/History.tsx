@@ -36,12 +36,25 @@ const History: React.FC = () => {
     return;
   };
 
+  let todayEarned: number = getTodayAmount();
+  let todayEarnedType: string = todayEarned >= 0 ? 'positive' : 'negative';
+
+  let totalEarned: number = sumTotalAmount();
+  let totalEarnedType: string = totalEarned >= 0 ? 'positive' : 'negative';
+
   return (
     <Container>
       <Header>하루를 흑자로 만들어보세요.</Header>
       {/* <Header>Timeline</Header> */}
-      <Header>오늘은 {getTodayAmount()}원 획득했습니다.</Header>
-      <Header>지금까지 {sumTotalAmount()}원 획득했습니다.</Header>
+      <Header>
+        오늘은 <MoneyText amountType={todayEarnedType}>{todayEarned}</MoneyText>{' '}
+        원 획득했습니다.
+      </Header>
+      <Header>
+        지금까지{' '}
+        <MoneyText amountType={todayEarnedType}>{totalEarned}</MoneyText> 원
+        획득했습니다.
+      </Header>
 
       {history.length === 0 && (
         <NoData>
@@ -62,8 +75,14 @@ const History: React.FC = () => {
           const timeDisplay = displayTime(hours, mins, secs);
 
           return (
-            <View>
-              {DayHeader && <DayHeaderText>{DayHeader}</DayHeaderText>}
+            <FlatListContainer>
+              {DayHeader && (
+                <>
+                  <DayHeaderText>{DayHeader}</DayHeaderText>
+                  <ShortBorder />
+                </>
+              )}
+
               <View style={styles.listView}>
                 <View>
                   <TimeText>
@@ -71,19 +90,21 @@ const History: React.FC = () => {
                   </TimeText>
                 </View>
                 <CenterContainer>
-                  <Text>{timeDisplay}</Text>
+                  <List>{timeDisplay}</List>
                   <List amountType={amountType}>
                     시간당 {numberWithCommas(item.hourly_rate)}
                     {item.currency}
                   </List>
                 </CenterContainer>
 
-                <List amountType={amountType}>
-                  {numberWithCommas(item.amount)}
-                  {item.currency}
-                </List>
+                <LastContainer>
+                  <List amountType={amountType}>
+                    {numberWithCommas(item.amount)}
+                    {item.currency}
+                  </List>
+                </LastContainer>
               </View>
-            </View>
+            </FlatListContainer>
           );
         }}
       />
@@ -100,25 +121,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 });
-
-const Container = styled.View`
-  flex: 1;
-  margin-top: 50px;
-`;
-
-const NoData = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-`;
-
-const DayHeaderText = styled.Text`
-  margin-left: 20px;
-  margin-top: 10px;
-  font-size: 15px;
-  font-weight: bold;
-`;
 
 const getTimeOnly = (date: number): string => {
   if (!date) return '';
@@ -142,10 +144,6 @@ const getDateObj = (date: number) => {
   };
 };
 
-const TimeText = styled.Text`
-  min-width: 90px;
-`;
-
 const displayTime = (hours: string, mins: string, secs: string) => {
   let displaySecond: string = secs;
   if (secs[0] === '0') {
@@ -161,16 +159,54 @@ const displayTime = (hours: string, mins: string, secs: string) => {
   }
 };
 
+const Container = styled.View`
+  flex: 1;
+  margin-top: 50px;
+`;
+
+const NoData = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+`;
+
+const DayHeaderText = styled.Text`
+  margin-left: 20px;
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  flex: 1;
+  margin: 5px auto;
+`;
+
+const ShortBorder = styled.View`
+  margin: 2px auto;
+  width: 50px;
+  flex: 1;
+  border-bottom-width: 3px;
+  border-bottom-color: blanchedalmond;
+`;
+
+const TimeText = styled.Text`
+  min-width: 90px;
+`;
+
 interface IAmountType {
   readonly amountType?: string;
 }
 
-const CenterContainer = styled.View`
-  min-width: 80px;
-  text-align: right;
+const FlatListContainer = styled.View`
+  border-bottom-width: 0.8px;
+  border-bottom-color: #eee;
 `;
 
-const List = styled.Text<IAmountType>`
+const CenterContainer = styled.View`
+  min-width: 80px;
+  text-align: center;
+`;
+
+const MoneyText = styled.Text<IAmountType>`
   color: ${props => {
     if (props.amountType === 'positive') return '#0ca678';
     else if (props.amountType === 'negative') return '#f03e3e';
@@ -178,8 +214,16 @@ const List = styled.Text<IAmountType>`
   }};
 `;
 
-const Header = styled.Text`
+const List = styled(MoneyText)`
+  text-align: right;
+`;
+
+const Header = styled(MoneyText)`
   text-align: center;
+`;
+
+const LastContainer = styled.View`
+  min-width: 50px;
 `;
 
 export default History;
