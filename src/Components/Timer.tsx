@@ -27,36 +27,7 @@ export default function Timer() {
 
   const [actType, setActType] = useState(true);
   const [hourlyRateModalVisible, setHourlyRateModalVisible] = useState(false);
-
   const {hours, mins, secs} = getRemaining(remainingSecs);
-
-  useEffect(() => {
-    const checkData = async () => {
-      try {
-        const startTime = await AsyncStorage.getItem('startTime');
-        const checkActive = await AsyncStorage.getItem('isActive');
-
-        if (startTime !== null && startTime !== '0') {
-          const parsedTime: number = JSON.parse(startTime);
-
-          // const pausedTime: number = await calculatePauseTime();
-
-          const totalSec: number = Math.round((Date.now() - parsedTime) / 1000);
-          // let totalSec: number =
-          //   Math.round((Date.now() - parsedTime) / 1000) - pausedTime;
-
-          await setRemainingSecs(totalSec);
-        }
-        if (checkActive === 'true') {
-          setIsActive(true);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    };
-
-    checkData();
-  }, [AppState.currentState]);
 
   const setStartTime = () => {
     AsyncStorage.setItem('startTime', JSON.stringify(new Date().getTime()));
@@ -151,7 +122,7 @@ export default function Timer() {
         title: '',
       };
 
-      insertHistory(log);
+      await insertHistory(log);
     }
 
     await setRemainingSecs(0);
