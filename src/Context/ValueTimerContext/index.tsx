@@ -1,5 +1,5 @@
 import React, {createContext, useState, useEffect} from 'react';
-import {Platform} from 'react-native';
+import {Platform, AppState, Alert} from 'react-native';
 
 import SQLite from 'react-native-sqlite-storage';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -22,6 +22,8 @@ interface IValueTimerContext {
   setIsActive: (value: boolean) => void;
   getTodayAmount: () => number;
   isShowGuide: boolean;
+  appState: any;
+  setAppState: (value: any) => void;
 }
 
 const ValueTimerContext = createContext<IValueTimerContext>({
@@ -37,6 +39,8 @@ const ValueTimerContext = createContext<IValueTimerContext>({
   setIsActive: () => {},
   getTodayAmount: (): number => 0,
   isShowGuide: false,
+  appState: AppState.currentState,
+  setAppState: () => {},
 });
 
 const ValueTimerContextProvider = ({children}: Props) => {
@@ -47,6 +51,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
   const [remainingSecs, setRemainingSecs] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [isShowGuide, setIsShowGuide] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
 
   async function initHourlyRate() {
     const currentHourlyRate = await AsyncStorage.getItem('hourlyRate');
@@ -76,6 +81,48 @@ const ValueTimerContextProvider = ({children}: Props) => {
   useEffect(() => {
     initHourlyRate();
   }, []);
+
+  const handleAppStateChange = nextAppState => {
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!');
+    }
+
+    setAppState(nextAppState);
+  };
+
+  useEffect(() => {
+    AppState.addEventListener('change', handleAppStateChange);
+    return () => AppState.removeEventListener('change', handleAppStateChange);
+  }, []);
+
+  useEffect(() => {
+    const checkData = async () => {
+      try {
+        const startTime = await AsyncStorage.getItem('startTime');
+        const checkActive = await AsyncStorage.getItem('isActive');
+        console.log('checktime run!');
+
+        if (startTime !== null && startTime !== '0') {
+          const parsedTime: number = JSON.parse(startTime);
+
+          // const pausedTime: number = await calculatePauseTime();
+
+          const totalSec: number = Math.round((Date.now() - parsedTime) / 1000);
+          // let totalSec: number =
+          //   Math.round((Date.now() - parsedTime) / 1000) - pausedTime;
+
+          await setRemainingSecs(totalSec);
+        }
+        if (checkActive === 'true') {
+          setIsActive(true);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    appState === 'active' && checkData();
+  }, [appState]);
 
   useEffect(() => {
     checkGuide();
@@ -154,7 +201,7 @@ const ValueTimerContextProvider = ({children}: Props) => {
 
   const handleHourlyRate = (value: string) => {
     if (remainingSecs > 0) {
-      return alert('타이머가 작동중엔 변경할 수 없습니다.');
+      return Alert.alert('타이머가 작동중엔 변경할 수 없습니다.');
     }
     const numberValue: number = Number(value);
 
@@ -195,6 +242,8 @@ const ValueTimerContextProvider = ({children}: Props) => {
         setIsActive,
         getTodayAmount,
         isShowGuide,
+        appState,
+        setAppState,
       }}>
       {children}
     </ValueTimerContext.Provider>
